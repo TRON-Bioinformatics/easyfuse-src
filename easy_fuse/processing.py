@@ -33,20 +33,25 @@ class Processing(object):
 
     def __init__(
         self,
-        cmd,
-        input_paths,
+        sample_id: str,
+        fastq1: str,
+        fastq2: str,
         working_dir,
         config: EasyFuseConfiguration,
         jobname_suffix,
     ):
         """Parameter initiation and work folder creation. Start of progress logging."""
-        self.working_dir = os.path.abspath(working_dir)
+        self.working_dir = os.path.join(os.path.abspath(working_dir), sample_id)
+        io_methods.create_folder(self.working_dir)
         self.log_path = os.path.join(self.working_dir, "easyfuse_processing.log")
         logzero.logfile(self.log_path)
-        io_methods.create_folder(self.working_dir)
 
-        logger.info("Starting easyfuse: CMD - {}".format(cmd))
-        self.input_paths = [os.path.abspath(file) for file in input_paths]
+        logger.info("Starting easyfuse!")
+        self.sample_id = sample_id
+        assert os.path.exists(fastq1), "Fastq file {} does not exist!".format(fastq1)
+        assert os.path.exists(fastq2), "Fastq file {} does not exist!".format(fastq2)
+        self.fastq1 = os.path.abspath(fastq1)
+        self.fastq2 = os.path.abspath(fastq2)
 
         self.cfg = config
         copy(self.cfg.config_file, working_dir)
@@ -70,44 +75,23 @@ class Processing(object):
             )
         )
 
-        # get fastq files
-        fastqs = io_methods.get_fastq_files(self.input_paths)
-        sample_list = io_methods.pair_fastq_files(fastqs)
-        for sample_id, fq1, fq2 in sample_list:
-            if fq1 and fq2:
-                logger.info("Processing Sample ID: {} (paired end)".format(sample_id))
-                logger.info("Sample 1: {}".format(fq1))
-                logger.info("Sample 2: {}".format(fq2))
-                self.execute_pipeline(fq1, fq2, sample_id, ref_genome, ref_trans)
+        self.execute_pipeline(self.fastq1, self.fastq2, self.sample_id, ref_genome, ref_trans)
 
         # summarize all data if selected
         if "summary" in self.cfg["general"]["tools"].split(","):
             dependency = []
-            for sample in sample_list:
-                dependency.extend(
-                    queueing.get_jobs_by_name(
-                        "requantifyBest-{}".format(sample[0]),
-                        self.cfg["general"]["queueing_system"],
-                    )
+
+            dependency.extend(
+                queueing.get_jobs_by_name(
+                    "requantifyBest-{}".format(self.sample_id),
+                    self.cfg["general"]["queueing_system"],
                 )
+            )
 
             # TODO: add support for running without model and multiple models
-            modelling_string = " --model_predictions"
 
-            cmd_summarize = (
-                "easy-fuse summarize-data --input {0}{1} -c {2} --samples {3}".format(
-                    self.working_dir,
-                    modelling_string,
-                    self.cfg.config_file,
-                    " ".join([sample_id for sample_id, _, _ in sample_list]),
-                )
-            )
+            cmd_summarize = self._build_command_summarize_data()
 
-            logger.debug(
-                "Submitting job: CMD - {0}; PATH - {1}; DEPS - {2}".format(
-                    cmd_summarize, self.working_dir, dependency
-                )
-            )
             resources_summary = self.cfg["resources"]["summary"].split(",")
             cpu = resources_summary[0]
             mem = resources_summary[1]
@@ -122,10 +106,71 @@ class Processing(object):
                 cmd_summarize,
                 cpu,
                 mem,
-                self.working_dir,
+                os.path.join(self.working_dir, "fusion_summary"),
                 dependency,
                 self.cfg["general"]["receiver"],
             )
+
+    def _build_command_summarize_data(self):
+        # summarize data input files
+        context_seq_file = os.path.join(
+            self.working_dir,
+            "fetchdata",
+            "fetched_contextseqs",
+            "Context_Seqs.csv",
+        )
+        detect_fusion_file = os.path.join(
+            self.working_dir,
+            "fetchdata",
+            "fetched_fusions",
+            "Detected_Fusions.csv",
+        )
+        requant_mode = self.cfg["general"]["requant_mode"]
+        requant_cpm_file = os.path.join(
+            self.working_dir,
+            "fetchdata",
+            "classification",
+            "classification_{}.tdt".format(requant_mode),
+        )
+        requant_cnt_file = os.path.join(
+            self.working_dir,
+            "fetchdata",
+            "classification",
+            "classification_{}.tdt.counts".format(requant_mode),
+        )
+        input_reads_stats_file = os.path.join(
+            self.working_dir,
+            "filtered_reads",
+            "{}_Log.final.out".format(self.sample_id)
+        )
+
+        # summarize data output folder
+        fusion_summary_output_folder = os.path.join(self.working_dir, "fusion_summary")
+        io_methods.create_folder(fusion_summary_output_folder)
+        cmd_summarize = (
+            "easy-fuse summarize-data "
+            "--input-fusions {input_fusions} "
+            "--input-fusion-context-seqs {input_fusion_context_seqs} "
+            "--input-requant-cpm {input_requant_cpm} "
+            "--input-requant-counts {input_requant_counts} "
+            "--input-reads-stats {input_reads_stats} "
+            "--model_predictions "
+            "--output-folder {output_folder} "
+            "--requant-mode {requant_mode} "
+            "--model-pred-threshold {model_pred_threshold} "
+            "--fusion-tools {fusion_tools}".format(
+                input_fusions=detect_fusion_file,
+                input_fusion_context_seqs=context_seq_file,
+                input_requant_cpm=requant_cpm_file,
+                input_requant_counts=requant_cnt_file,
+                input_reads_stats=input_reads_stats_file,
+                output_folder=fusion_summary_output_folder,
+                requant_mode=requant_mode,
+                model_pred_threshold=self.cfg["general"]["model_pred_threshold"],
+                fusion_tools=self.cfg["general"]["fusiontools"],
+            )
+        )
+        return cmd_summarize
 
     # Per sample, define input parameters and execution commands, create a folder tree and submit runs to slurm
     def execute_pipeline(self, fq1, fq2, sample_id, ref_genome, ref_trans):
@@ -153,22 +198,19 @@ class Processing(object):
         # Output results folder creation - currently included:
         # 1) Gene/Isoform expression: star
         # 2) Fusion prediction: mapsplice, fusioncatcher, starfusion, infusion, soapfuse
-        output_results_path = os.path.join(
-            self.working_dir, "Sample_{}".format(sample_id)
-        )
-        qc_path = os.path.join(output_results_path, "qc")
+        qc_path = os.path.join(self.working_dir, "qc")
         skewer_path = os.path.join(qc_path, "skewer")
         qc_table_path = os.path.join(qc_path, "qc_table.txt")
-        filtered_reads_path = os.path.join(output_results_path, "filtered_reads")
-        expression_path = os.path.join(output_results_path, "expression")
+        filtered_reads_path = os.path.join(self.working_dir, "filtered_reads")
+        expression_path = os.path.join(self.working_dir, "expression")
         star_path = os.path.join(expression_path, "star")
-        fusion_path = os.path.join(output_results_path, "fusion")
+        fusion_path = os.path.join(self.working_dir, "fusion")
         mapsplice_path = os.path.join(fusion_path, "mapsplice")
         fusioncatcher_path = os.path.join(fusion_path, "fusioncatcher")
         starfusion_path = os.path.join(fusion_path, "starfusion")
         infusion_path = os.path.join(fusion_path, "infusion")
         soapfuse_path = os.path.join(fusion_path, "soapfuse")
-        fetchdata_path = os.path.join(output_results_path, "fetchdata")
+        fetchdata_path = os.path.join(self.working_dir, "fetchdata")
         # former fetchdata.py
         detected_fusions_path = os.path.join(fetchdata_path, "fetched_fusions")
         detected_fusions_file = os.path.join(
@@ -195,7 +237,6 @@ class Processing(object):
         )
 
         for folder in [
-            output_results_path,
             qc_path,
             skewer_path,
             filtered_reads_path,
@@ -380,31 +421,45 @@ class Processing(object):
             )
         )
 
-        # (8) Data collection
-        # TODO: embed this as operations within the package
-        cmd_readcounts = (
-            "easy-fuse count-reads "
-            "-i {0} "
-            "-f {1} "
-            "-o {2}".format(
-                os.path.join(filtered_reads_path, "{}_Log.final.out".format(sample_id)),
-                "star",
-                os.path.join(classification_path, "Star_org_input_reads.txt"),
-            )
+        fusioncatcher_results_path_1 = os.path.join(
+            self.working_dir, "fusion", "fusioncatcher", "summary_candidate_fusions.txt"
         )
-
+        fusioncatcher_results_path_2 = os.path.join(
+            self.working_dir, "fusion", "fusioncatcher", "final-list_candidate-fusion-genes.txt"
+        )
+        starfusion_results_path = os.path.join(
+            self.working_dir, "fusion", "starfusion", "star-fusion.fusion_predictions.tsv"
+        )
+        mapsplice_results_path = os.path.join(
+            self.working_dir, "fusion", "mapsplice", "fusions_well_annotated.txt"
+        )
+        infusion_results_path = os.path.join(
+            self.working_dir, "fusion", "infusion", "fusions.detailed.txt"
+        )
+        soapfuse_results_path = os.path.join(
+            self.working_dir, "fusion", "soapfuse", "final_fusion_genes", self.sample_id,
+            "{}.final.Fusion.specific.for.genes".format(self.sample_id)
+        )
         cmd_fusiondata = (
             "easy-fuse fusion-parser "
-            "-i {0} "
-            "-o {1} "
-            "-s {2} "
-            "-f {3} "
-            "-l {4}".format(
-                output_results_path,
-                detected_fusions_path,
-                sample_id,
-                self.cfg["general"]["fusiontools"],
-                self.log_path,
+            "--input-fusioncatcher {input_fusion_catcher} "
+            "--input-fusioncatcher2 {input_fusion_catcher2} "
+            "--input-starfusion {input_star_fusion} "
+            "--input-mapsplice {input_mapsplice} "
+            "--input-infusion {input_infusion} "
+            "--input-soapfuse {input_soapfuse} "
+            "--output {output_folder} "
+            "--sample {sample} "
+            "--logger {logfile}".format(
+                output_folder=detected_fusions_path,
+                sample=sample_id,
+                logfile=self.log_path,
+                input_fusion_catcher=fusioncatcher_results_path_1,
+                input_fusion_catcher2=fusioncatcher_results_path_2,
+                input_star_fusion=starfusion_results_path,
+                input_mapsplice=mapsplice_results_path,
+                input_infusion=infusion_results_path,
+                input_soapfuse=soapfuse_results_path
             )
         )
 
@@ -447,11 +502,16 @@ class Processing(object):
             cmds["samtools"], star_align_file
         )
 
+        input_reads_stats_file = os.path.join(
+            filtered_reads_path,
+            "{}_Log.final.out".format(sample_id)
+        )
         cmd_requantify_fltr = (
             "easy-fuse requantify "
             "-i {0}fltr_Aligned.sortedByCoord.out.bam "
             "-o {1}_fltr.tdt "
-            "-d 10".format(star_align_file, classification_file)
+            "-d 10 "
+            "--input-reads-stats {2}".format(star_align_file, classification_file, input_reads_stats_file)
         )
 
         cmd_staralign_org = (
@@ -471,7 +531,9 @@ class Processing(object):
         cmd_requantify_org = (
             "easy-fuse requantify "
             "-i {0}org_Aligned.sortedByCoord.out.bam "
-            "-o {1}_org.tdt -d 10".format(star_align_file, classification_file)
+            "-o {1}_org.tdt "
+            "-d 10 "
+            "--input-reads-stats {2}".format(star_align_file, classification_file, input_reads_stats_file)
         )
 
         # for testing, based on debug. should be removed if merged to original
@@ -479,8 +541,11 @@ class Processing(object):
             "easy-fuse requantify-filter "
             "--input {0}_Aligned.out.bam "
             "--input2 {1}.debug "
+            "--input-reads-stats {2} "
             "--output {0}_Aligned.out.filtered2.bam".format(
-                os.path.join(filtered_reads_path, sample_id), context_seq_file
+                os.path.join(filtered_reads_path, sample_id),
+                context_seq_file,
+                input_reads_stats_file
             )
         )
 
@@ -534,7 +599,9 @@ class Processing(object):
         cmd_requantify_best = (
             "easy-fuse requantify "
             "-i {0}best_Aligned.sortedByCoord.out.bam "
-            "-o {1}_best.tdt -d 10".format(star_align_file, classification_file)
+            "-o {1}_best.tdt "
+            "-d 10 "
+            "--input-reads-stats {2}".format(star_align_file, classification_file, input_reads_stats_file)
         )
 
         # set final lists of executable tools and path
@@ -547,7 +614,6 @@ class Processing(object):
             "starfusion",
             "infusion",
             "soapfuse",
-            "readcounts",
             "fusiongrep",
             "contextseq",
             "starindex",
@@ -572,7 +638,6 @@ class Processing(object):
             cmd_starfusion,
             cmd_infusion,
             cmd_soapfuse,
-            cmd_readcounts,
             cmd_fusiondata,
             cmd_contextseq,
             cmd_starindex,
@@ -618,7 +683,7 @@ class Processing(object):
         for i, tool in enumerate(exe_tools, 0):
             if tool in tools:
                 # check dependencies of the pipeline.
-                # Besides tool dependencies (Starfusion/Starchip -> Star), read filtering is mandatory
+                # Besides tool dependencies (Starfusion -> Star), read filtering is mandatory
                 if tool == READ_FILTER_STEP and READ_FILTER_STEP not in tools:
                     logger.error(
                         """Error 99: Sample {} will be skipped due to missing read filtering.\n
@@ -634,9 +699,7 @@ class Processing(object):
                         )
                     )
                     return 0
-                elif (
-                    tool == "starfusion" or tool == "starchip"
-                ) and "star" not in tools:
+                elif tool == "starfusion" and "star" not in tools:
                     logger.error(
                         """Error 99: Running {0} for Sample {1} will be skipped due to a missing dependency.\n
                             {0} builds on Star and it is therefore mandatory to run this first.\n
@@ -679,12 +742,6 @@ class Processing(object):
 
                 # Build slurm dependencies
                 dependencies = self.build_dependencies(tool, sample_id)
-
-                logger.debug(
-                    "Submitting job: CMD - {0}; PATH - {1}; DEPS - {2}".format(
-                        cmd, exe_path[i], dependencies
-                    )
-                )
                 self.submit_job(uid, cmd, cpu, mem, exe_path[i], dependencies, "")
             else:
                 logger.info(
@@ -697,6 +754,11 @@ class Processing(object):
         self, uid, cmd, cores, mem_usage, output_results_folder, dependencies, mail
     ):
         """Submit job to for process generation"""
+        logger.debug(
+            "Submitting job: CMD - {0}; PATH - {1}; DEPS - {2}".format(
+                cmd, output_results_folder, dependencies
+            )
+        )
         que_sys = self.cfg["general"]["queueing_system"]
         already_running = queueing.get_jobs_by_name(uid, que_sys)
         if not already_running:
@@ -753,7 +815,6 @@ class Processing(object):
             "qc": [],
             "readfilter": ["qc"],
             "star": ["readfilter"],
-            "readcounts": ["star"],
             "starfusion": ["star"],
             "mapsplice": ["readfilter"],
             "fusioncatcher": ["readfilter"],
@@ -767,7 +828,7 @@ class Processing(object):
                 "soapfuse",
             ],
             "contextseq": ["fusiongrep"],
-            "starindex": ["readcounts", "contextseq"],
+            "starindex": ["contextseq"],
             "readFilter2": ["contextseq"],
             "readFilter2b": ["readFilter2"],
             "staralignBest": ["starindex", "readFilter2b"],
@@ -787,11 +848,24 @@ class Processing(object):
 
 def add_pipeline_parser_args(pipeline_parser):
     pipeline_parser.add_argument(
-        "-i",
-        "--input",
-        dest="input_paths",
-        nargs="+",
-        help="Specify full path of the fastq folder to process.",
+        "-1",
+        "--fastq1",
+        dest="fastq1",
+        help="FASTQ file for read 1",
+        required=True,
+    )
+    pipeline_parser.add_argument(
+        "-2",
+        "--fastq2",
+        dest="fastq2",
+        help="FASTQ file for read 2",
+        required=True,
+    )
+    pipeline_parser.add_argument(
+        "-s",
+        "--sample-id",
+        dest="sample_id",
+        help="Sample identifier",
         required=True,
     )
     pipeline_parser.add_argument(
@@ -828,24 +902,10 @@ def add_pipeline_parser_args(pipeline_parser):
 
 
 def pipeline_command(args):
-    jobname_suffix = ""
     if args.jobname_suffix:
-        jobname_suffix = "-p {}".format(args.jobname_suffix)
+        "-p {}".format(args.jobname_suffix)
 
     config = EasyFuseConfiguration(args.config_file)
-
-    # records CLI call
-    # TODO: think of better ways of recording what the content of files (ie: config, FASTQs, etc.) was as files do
-    #  change and only paths are recorded here
-    script_call = "easy-fuse -i {} {} {} -o {}".format(
-        " ".join([os.path.abspath(x) for x in args.input_paths]),
-        "-c {}".format(config.config_file),
-        jobname_suffix,
-        os.path.abspath(args.output_folder),
-    )
-    with open(os.path.join(args.output_folder, "process.sh"), "w") as outf:
-        outf.write("#!/bin/sh\n\n{}".format(script_call))
-
     Processing(
-        script_call, args.input_paths, args.output_folder, config, args.jobname_suffix
+        args.sample_id, args.fastq1, args.fastq2, args.output_folder, config, args.jobname_suffix
     ).run()

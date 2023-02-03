@@ -9,11 +9,11 @@ output folders and writes the "Detected_Fusions.csv"
 @author: Tron (PASO)
 @version: 20221109
 """
-import os
 import re
 import operator
 
 
+# TODO: this fixes the reference genome! -> make it more flexible
 chr_list = (
     "1",
     "2",
@@ -41,56 +41,6 @@ chr_list = (
     "Y",
     "MT",
 )
-
-
-def parse_results(output_path, tool):
-    """Load and parse results from tool"""
-
-    fusioncatcher_results_path_1 = os.path.join(
-        output_path, "fusion", "fusioncatcher", "summary_candidate_fusions.txt"
-    )
-    fusioncatcher_results_path_2 = os.path.join(
-        output_path, "fusion", "fusioncatcher", "final-list_candidate-fusion-genes.txt"
-    )
-    starfusion_results_path = os.path.join(
-        output_path, "fusion", "starfusion", "star-fusion.fusion_predictions.tsv"
-    )
-    mapsplice_results_path = os.path.join(
-        output_path, "fusion", "mapsplice", "fusions_well_annotated.txt"
-    )
-    infusion_results_path = os.path.join(
-        output_path, "fusion", "infusion", "fusions.detailed.txt"
-    )
-    soapfuse_results_path = ""
-    folder_to_scan = os.path.join(
-        output_path, "fusion", "soapfuse", "final_fusion_genes"
-    )
-    for filename in os.listdir(folder_to_scan):
-        folder_path = os.path.join(folder_to_scan, filename)
-        if os.path.isdir(folder_path):
-            for res in os.listdir(folder_path):
-                if res.endswith(".final.Fusion.specific.for.genes"):
-                    soapfuse_results_path = os.path.join(folder_path, res)
-
-    starchip_results_path = os.path.join(
-        output_path, "fusion", "starchip", "starchip.summary"
-    )
-
-    if tool == "fusioncatcher":
-        return parse_fusioncatcher_results(
-            fusioncatcher_results_path_1, fusioncatcher_results_path_2
-        )
-    elif tool == "starfusion":
-        return parse_starfusion_results(starfusion_results_path)
-    elif tool == "mapsplice":
-        return parse_mapsplice_results(mapsplice_results_path)
-    elif tool == "starchip":
-        return parse_starchip_results(starchip_results_path)
-    elif tool == "infusion":
-        return parse_infusion_results(infusion_results_path)
-    elif tool == "soapfuse":
-        return parse_soapfuse_results(soapfuse_results_path)
-    return None
 
 
 def parse_fusioncatcher_results(infile1, infile2):
@@ -198,38 +148,8 @@ def parse_mapsplice_results(infile):
     return fusion_map
 
 
-def parse_starchip_results(infile):
-    """Load and parse results from starchip"""
-    fusion_map = {}
-    with open(infile) as prediction:
-        next(prediction)  # skip header line
-        for line in prediction:
-            elements = line.rstrip().split("\t")
-
-            fusion_gene = "{0}_{1}".format(elements[5], elements[7]).upper()
-
-            # check whether fusion gene is not on primary chr
-            if (
-                elements[0].split(":")[0] not in self.chr_list
-                or elements[1].split(":")[0] not in self.chr_list
-            ):
-                continue
-
-            bpid = elements[0] + "_" + elements[1]
-
-            fusion_map[bpid] = [
-                fusion_gene,  # fusion_gene
-                elements[0],  # up_gene_bp
-                elements[1],  # dn_gene_bp
-                elements[3],  # junc_reads_num
-                elements[2],  # span_reads_num
-                "Starchip",
-            ]
-    return fusion_map
-
-
 def parse_infusion_results(infile):
-    """Load and parse results from starchip"""
+    """Load and parse results from infusion"""
     fusion_map = {}
     with open(infile) as prediction:
         next(prediction)  # skip header line

@@ -11,3 +11,5 @@ test_local/
 dist
 build
 venv
+integration_tests/**/observed.*
+integration_tests/**/observed
