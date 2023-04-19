@@ -1,5 +1,7 @@
 import argparse
 
+from easy_fuse.ref_data.gff3_to_db import add_gff3_to_db_args
+from easy_fuse.ref_data.gtf2tsl import add_gtf_to_tsl_args
 from easy_fuse.misc.qc_parser import add_qc_parser_args
 from easy_fuse.read_selection import add_read_selection_args
 from easy_fuse.requantify import add_requantify_args
@@ -33,6 +35,21 @@ def easy_fuse_cli():
     )
     add_pipeline_parser_args(pipeline_parser)
 
+    gff3_to_db_parser = subparsers.add_parser(
+        "gff3-to-db",
+        description="Converts GFF3 to DB format",
+        epilog=epilog,
+    )
+    add_gff3_to_db_args(gff3_to_db_parser)
+
+    gtf_to_tsl_parser = subparsers.add_parser(
+        "gtf-to-tsl",
+        description="Converts GTF to TSL format",
+        epilog=epilog,
+    )
+    add_gtf_to_tsl_args(gtf_to_tsl_parser)
+
+    
     qc_parser_parser = subparsers.add_parser(
         "qc-parser",
         description="Parses QC data",
