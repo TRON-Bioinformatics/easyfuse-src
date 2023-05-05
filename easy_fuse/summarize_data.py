@@ -125,42 +125,40 @@ class FusionSummary(object):
         joined_table_1b = self.data.groupby(
             by=cols_to_aggregate_on, sort=False, as_index=False
         )
-        ranked_fusions_file = os.path.join(self.output_folder, "fusions_1.csv")
+        ranked_fusions_file = os.path.join(self.output_folder, "fusions.csv")
         joined_table_1b.agg(self.custom_data_aggregation).to_csv(
             ranked_fusions_file, sep=";", index=False
         )
 
         joined_table_1 = pd.read_csv(ranked_fusions_file, sep=";")
 
-        for table in ["1", "2"]:
-            summary_file = os.path.join(self.output_folder, "fusions_{}.csv".format(table))
-            if model_predictions and os.path.exists(summary_file) and os.path.isfile(summary_file):
-                model_path = pkg_resources.resource_filename(
-                    easy_fuse.__name__,
-                    "resources/model/Fusion_modeling_FFPE_train_v35.random_forest.model_full_data.EF_full.rds",
-                )
+        if model_predictions and os.path.exists(ranked_fusions_file) and os.path.isfile(ranked_fusions_file):
+            model_path = pkg_resources.resource_filename(
+                easy_fuse.__name__,
+                "resources/model/Fusion_modeling_FFPE_train_v35.random_forest.model_full_data.EF_full.rds",
+            )
 
-                # append prediction scores based on pre-calculated model
-                predicted_fusions_file = os.path.join(self.output_folder, "fusions.pass.csv")
-                cmd_model = "{0} --fusion_summary {1} --model_file {2} --prediction_threshold {3} --output {4}".format(
-                    pkg_resources.resource_filename(
-                        easy_fuse.__name__, "resources/R/R_model_prediction.R"
-                    ),
-                    summary_file,
-                    model_path,
-                    self.model_pred_threshold,
-                    predicted_fusions_file,
-                )
+            # append prediction scores based on pre-calculated model
+            predicted_fusions_file = os.path.join(self.output_folder, "fusions.pass.csv")
+            cmd_model = "{0} --fusion_summary {1} --model_file {2} --prediction_threshold {3} --output {4}".format(
+                pkg_resources.resource_filename(
+                    easy_fuse.__name__, "resources/R/R_model_prediction.R"
+                ),
+                ranked_fusions_file,
+                model_path,
+                self.model_pred_threshold,
+                predicted_fusions_file,
+            )
 
-                queueing.submit(
-                    "", cmd_model.split(" "), "", "", "", "", "", "", "", "", "", "none"
-                )
-                # re-read the table with prediction for filter counting
-                # urla - note: there is probably a more elegant way using getattr/setattr but I'm not at all familiar with its pros/cons
-                if table == "1":
-                    joined_table_1 = pd.read_csv(
-                        predicted_fusions_file, sep=";"
-                    )
+            queueing.submit(
+                "", cmd_model.split(" "), "", "", "", "", "", "", "", "", "", "none"
+            )
+            # re-read the table with prediction for filter counting
+            # urla - note: there is probably a more elegant way using getattr/setattr but I'm not at all familiar with its pros/cons
+            
+            joined_table_1 = pd.read_csv(
+                predicted_fusions_file, sep=";"
+            )
 
         joined_table_1.set_index(keys=cols_to_aggregate_on, drop=False, inplace=True)
         time_taken = time.time() - start_time
