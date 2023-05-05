@@ -11,7 +11,6 @@ of all features in it
 
 from __future__ import print_function, division
 
-import argparse
 import os
 
 import gffutils
@@ -74,11 +73,8 @@ class GTF2DB(object):
             )
 
 
-def main():
-    """Parse command line arguments and start script"""
-    parser = argparse.ArgumentParser(
-        description="Generate mapping stats for fusion detection"
-    )
+def add_gff3_to_db_args(parser):
+    """Add gff3_to_db arguments to parser"""
     parser.add_argument(
         "--gff_input", dest="gff_in", help="ensembl gff3 annotation file", required=True
     )
@@ -95,9 +91,11 @@ def main():
         default=False,
         action="store_true",
     )
-    args = parser.parse_args()
+    parser.set_defaults(func=gff3_to_db_command)
+
+
+def gff3_to_db_command(args):
+    """Run gff3_to_db conversion"""
     GTF2DB(args.gff_in, args.db_out).create_gffdb(args.overwrite)
 
 
-if __name__ == "__main__":
-    main()

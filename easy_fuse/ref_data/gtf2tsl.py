@@ -7,7 +7,6 @@ Get Transcript Support Level (TSL) info from an ensembl GTF file
 @version: 20190702
 """
 
-import argparse
 import sys
 
 from logzero import logger
@@ -101,17 +100,13 @@ class Gtf2Tsl(object):
         return new_value
 
 
-def main():
-    """Parse command line arguments and start script"""
-    parser = argparse.ArgumentParser(
-        description="Get Transcript Support Level (TSL) info from an ensembl GTF file"
-    )
+def add_gtf_to_tsl_args(parser):
+    """Add gtf_to_tsl arguments to parser"""
     parser.add_argument("--gtf", dest="gtf", help="Gtf input file", required=True)
     parser.add_argument("--tsl", dest="tsl", help="Tsl output file", required=True)
-    args = parser.parse_args()
+    parser.set_defaults(func=gtf_to_tsl_command)
 
+
+def gtf_to_tsl_command(args):
+    """Run gtf_to_tsl conversion"""
     Gtf2Tsl(args.gtf, args.tsl).get_data()
-
-
-if __name__ == "__main__":
-    main()
