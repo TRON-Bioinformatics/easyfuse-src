@@ -26,6 +26,7 @@ class FusionSummary(object):
             input_requant_cpm,
             input_requant_counts,
             input_reads_stats,
+            input_model_pred,
             output_folder,
             requant_mode: str,
             model_pred_threshold: float,
@@ -47,6 +48,9 @@ class FusionSummary(object):
         assert os.path.exists(input_reads_stats) and os.path.isfile(input_reads_stats), \
             "Read stats file not found: {}".format(input_reads_stats)
         self.input_reads_stats = input_reads_stats
+        assert os.path.exists(input_model_pred) and os.path.isfile(input_model_pred), \
+            "Prediction model file not found: {}".format(input_model_pred)
+        self.input_model_pred = input_model_pred
         assert os.path.exists(output_folder) and os.path.isdir(output_folder), \
             "Output folder not found: {}".format(output_folder)
         self.output_folder = output_folder
@@ -133,10 +137,7 @@ class FusionSummary(object):
         joined_table_1 = pd.read_csv(ranked_fusions_file, sep=";")
 
         if model_predictions and os.path.exists(ranked_fusions_file) and os.path.isfile(ranked_fusions_file):
-            model_path = pkg_resources.resource_filename(
-                easy_fuse.__name__,
-                "resources/model/Fusion_modeling_FFPE_train_v35.random_forest.model_full_data.EF_full.rds",
-            )
+            model_path = os.path.abspath(self.input_model_pred)
 
             # append prediction scores based on pre-calculated model
             predicted_fusions_file = os.path.join(self.output_folder, "fusions.pass.csv")
@@ -450,6 +451,12 @@ def add_summarize_data_args(parser):
         help="Path to input file with reads stats",
     )
     parser.add_argument(
+        "--input-model-pred",
+        dest="input_model_pred",
+        required=True,
+        help="Path to input file with prediction model",
+    )
+    parser.add_argument(
         "--model_predictions",
         default=False,
         action="store_true",
@@ -486,6 +493,7 @@ def summarize_data_command(args):
         input_requant_cpm=args.input_requant_cpm,
         input_requant_counts=args.input_requant_counts,
         input_reads_stats=args.input_reads_stats,
+        input_model_pred=args.input_model_pred,
         output_folder=args.output_folder,
         requant_mode=args.requant_mode,
         model_pred_threshold=float(args.model_pred_threshold),
