@@ -8,6 +8,7 @@ input_fusions_contexts=$test_folder/input.fusions_context_sequences.csv
 input_requant_cpm=$test_folder/input.requant_cpm.tdt
 input_requant_counts=$test_folder/input.requant_counts.counts
 input_reads_stats=$test_folder/input.reads_stats.txt
+input_model_pred=$test_folder/input.model.rds
 
 mkdir $test_folder/observed
 
@@ -17,6 +18,7 @@ easy-fuse summarize-data \
   --input-requant-cpm $input_requant_cpm \
   --input-requant-counts $input_requant_counts \
   --input-reads-stats $input_reads_stats \
+  --input-model-pred $input_model_pred \
   --model_predictions \
   --output-folder $test_folder/observed \
   --requant-mode best \
