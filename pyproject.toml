@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "pyeasyfuse"
-version = "2.0.1"
+version = "2.0.2"
 authors = [
     "Patrick Sorn <patrick.sorn@tron-mainz.edu>",
     "Jonas Ibn-Salem <jonas.ibn-salem@tron-mainz.edu>",
