@@ -27,7 +27,7 @@ import logzero
 import pysam  # pysam is not available for windows (where I run pylint) => pylint: disable=E0401
 from logzero import logger
 
-from easy_fuse.misc.count_input_reads import get_input_read_count_from_star
+from pyeasyfuse.misc.count_input_reads import get_input_read_count_from_star
 
 
 # pylint: disable=line-too-long

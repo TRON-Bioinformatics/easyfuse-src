@@ -11,7 +11,7 @@ import os
 from logzero import logger
 import pysam
 
-from easy_fuse.misc.count_input_reads import get_input_read_count_from_star
+from pyeasyfuse.misc.count_input_reads import get_input_read_count_from_star
 
 
 class Requantification(object):

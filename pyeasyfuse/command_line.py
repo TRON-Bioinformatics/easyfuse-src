@@ -1,20 +1,20 @@
 import argparse
 
-from easy_fuse.ref_data.gff3_to_db import add_gff3_to_db_args
-from easy_fuse.ref_data.gtf2tsl import add_gtf_to_tsl_args
-from easy_fuse.misc.qc_parser import add_qc_parser_args
-from easy_fuse.read_selection import add_read_selection_args
-from easy_fuse.requantify import add_requantify_args
-from easy_fuse.summarize_data import add_summarize_data_args
-from easy_fuse.fusionreadfilter import add_read_filter_args
-from easy_fuse.fusiontoolparser import add_fusion_parse_args
-from easy_fuse.fusionannotation import add_annotation_parser_args
+from pyeasyfuse.ref_data.gff3_to_db import add_gff3_to_db_args
+from pyeasyfuse.ref_data.gtf2tsl import add_gtf_to_tsl_args
+from pyeasyfuse.misc.qc_parser import add_qc_parser_args
+from pyeasyfuse.read_selection import add_read_selection_args
+from pyeasyfuse.requantify import add_requantify_args
+from pyeasyfuse.summarize_data import add_summarize_data_args
+from pyeasyfuse.fusionreadfilter import add_read_filter_args
+from pyeasyfuse.fusiontoolparser import add_fusion_parse_args
+from pyeasyfuse.fusionannotation import add_annotation_parser_args
 from logzero import logger
-import easy_fuse
-from easy_fuse.processing import add_pipeline_parser_args
-from easy_fuse.tool_wrapper.skewer_wrapper import add_skewer_args
-from easy_fuse.tool_wrapper.soapfuse_wrapper import add_soapfuse_wrapper_args
-from easy_fuse.tool_wrapper.star_custom_index import add_star_custom_index_args
+import pyeasyfuse
+from pyeasyfuse.processing import add_pipeline_parser_args
+from pyeasyfuse.tool_wrapper.skewer_wrapper import add_skewer_args
+from pyeasyfuse.tool_wrapper.soapfuse_wrapper import add_soapfuse_wrapper_args
+from pyeasyfuse.tool_wrapper.star_custom_index import add_star_custom_index_args
 
 
 epilog = "Copyright (c) 2023 TRON gGmbH (See LICENSE for licensing details)"
@@ -23,7 +23,7 @@ epilog = "Copyright (c) 2023 TRON gGmbH (See LICENSE for licensing details)"
 def easy_fuse_cli():
     # set up logger
     parser = argparse.ArgumentParser(
-        description="EasyFuse v{}".format(easy_fuse.__version__),
+        description="EasyFuse v{}".format(pyeasyfuse.__version__),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog=epilog,
     )

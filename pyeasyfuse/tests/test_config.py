@@ -3,14 +3,14 @@ from unittest import TestCase
 
 import pkg_resources
 
-import easy_fuse.tests
-from easy_fuse.misc.config import EasyFuseConfiguration
+import pyeasyfuse.tests
+from pyeasyfuse.misc.config import EasyFuseConfiguration
 
 
 class TestConfig(TestCase):
     def test_config_loading(self):
         config_file = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/test.config.ini"
+            pyeasyfuse.tests.__name__, "resources/test.config.ini"
         )
         config = EasyFuseConfiguration(config_file=config_file)
         self.assertIsInstance(config, EasyFuseConfiguration)
@@ -32,7 +32,7 @@ class TestConfig(TestCase):
 
     def test_non_existing_value(self):
         config_file = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/test.config.ini"
+            pyeasyfuse.tests.__name__, "resources/test.config.ini"
         )
         config = EasyFuseConfiguration(config_file=config_file)
         with self.assertRaises(NoOptionError):
@@ -40,7 +40,7 @@ class TestConfig(TestCase):
 
     def test_non_existing_section(self):
         config_file = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/test.config.ini"
+            pyeasyfuse.tests.__name__, "resources/test.config.ini"
         )
         config = EasyFuseConfiguration(config_file=config_file)
         with self.assertRaises(NoSectionError):
@@ -48,7 +48,7 @@ class TestConfig(TestCase):
 
     def test_non_existing_config_file(self):
         config_file = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/idontexist.config.ini"
+            pyeasyfuse.tests.__name__, "resources/idontexist.config.ini"
         )
         with self.assertRaises(AssertionError):
             EasyFuseConfiguration(config_file)

@@ -15,7 +15,7 @@ from typing import Dict
 import logzero
 from logzero import logger
 
-from easy_fuse.fusiontoolparser_helper import *
+from pyeasyfuse.fusiontoolparser_helper import *
 
 
 # pylint: disable=line-too-long

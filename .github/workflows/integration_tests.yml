@@ -34,7 +34,7 @@ jobs:
     - name: Build and install
       run: |
         poetry build
-        pip install dist/easy_fuse*.whl
+        pip install dist/pyeasyfuse*.whl
     - name: Run integration tests
       run: |
         make clean integration_tests
