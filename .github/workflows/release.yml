@@ -17,7 +17,7 @@ jobs:
       run: |
         sudo apt-get update && sudo apt-get --assume-yes install samtools
         python -m pip install --upgrade pip
-        pip install poetry
+        pip install setuptools wheel twine poetry
     - name: Build and publish
       env:
         TWINE_USERNAME: __token__
