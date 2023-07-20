@@ -8,12 +8,12 @@ import os
 import os.path
 import time
 
-import easy_fuse
+import pyeasyfuse
 import pkg_resources
 from logzero import logger
 import pandas as pd
-from easy_fuse.misc import queueing
-from easy_fuse.misc.count_input_reads import get_input_read_count_from_star
+from pyeasyfuse.misc import queueing
+from pyeasyfuse.misc.count_input_reads import get_input_read_count_from_star
 
 
 class FusionSummary(object):
@@ -143,7 +143,7 @@ class FusionSummary(object):
             predicted_fusions_file = os.path.join(self.output_folder, "fusions.pass.csv")
             cmd_model = "{0} --fusion_summary {1} --model_file {2} --prediction_threshold {3} --output {4}".format(
                 pkg_resources.resource_filename(
-                    easy_fuse.__name__, "resources/R/R_model_prediction.R"
+                    pyeasyfuse.__name__, "resources/R/R_model_prediction.R"
                 ),
                 ranked_fusions_file,
                 model_path,

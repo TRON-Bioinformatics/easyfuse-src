@@ -23,7 +23,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Programming Language :: Python :: 3.7",
 ]
-packages = [{include = "easy_fuse"}]
+packages = [{include = "pyeasyfuse"}]
 [tool.poetry.group.dev.dependencies]
 coverage = {extras = ["toml"], version = "^7.1.0"}
 
@@ -34,7 +34,7 @@ omit = [".*", "*/site-packages/*"]
 fail_under = 80
 
 [tool.setuptools]
-py-modules = ["easy_fuse"]
+py-modules = ["pyeasyfuse"]
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.8"
@@ -49,7 +49,7 @@ logzero = "1.7.0"
 pytz = "2022.7.1"
 
 [tool.setuptools.dynamic]
-version = {attr = "easy_fuse.__version__"}
+version = {attr = "pyeasyfuse.__version__"}
 
 [tool.poetry.scripts]
-easy-fuse = "easy_fuse.command_line:easy_fuse_cli"
+easy-fuse = "pyeasyfuse.command_line:easy_fuse_cli"

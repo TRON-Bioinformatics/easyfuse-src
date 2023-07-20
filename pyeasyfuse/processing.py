@@ -17,11 +17,11 @@ from shutil import copy
 import logzero
 from logzero import logger
 
-import easy_fuse
-import easy_fuse.misc.io_methods as io_methods
-from easy_fuse import __version__
-from easy_fuse.misc import queueing
-from easy_fuse.misc.config import EasyFuseConfiguration
+import pyeasyfuse
+import pyeasyfuse.misc.io_methods as io_methods
+from pyeasyfuse import __version__
+from pyeasyfuse.misc import queueing
+from pyeasyfuse.misc.config import EasyFuseConfiguration
 
 DEFAULT_CPU_MEM = "1,16"
 
@@ -895,7 +895,7 @@ def add_pipeline_parser_args(pipeline_parser):
         "--version",
         dest="version",
         action="version",
-        version="%(prog)s {version}".format(version=easy_fuse.__version__),
+        version="%(prog)s {version}".format(version=pyeasyfuse.__version__),
         help="Get version info",
     )
     pipeline_parser.set_defaults(func=pipeline_command)

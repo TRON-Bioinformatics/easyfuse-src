@@ -1,34 +1,34 @@
 import unittest
 
-import easy_fuse.tests
+import pyeasyfuse.tests
 import pkg_resources
 
-from easy_fuse.fusiontoolparser_helper import parse_fusioncatcher_results
-from easy_fuse.fusiontoolparser_helper import parse_starfusion_results
-from easy_fuse.fusiontoolparser_helper import parse_mapsplice_results
-from easy_fuse.fusiontoolparser_helper import parse_infusion_results
-from easy_fuse.fusiontoolparser_helper import parse_soapfuse_results
+from pyeasyfuse.fusiontoolparser_helper import parse_fusioncatcher_results
+from pyeasyfuse.fusiontoolparser_helper import parse_starfusion_results
+from pyeasyfuse.fusiontoolparser_helper import parse_mapsplice_results
+from pyeasyfuse.fusiontoolparser_helper import parse_infusion_results
+from pyeasyfuse.fusiontoolparser_helper import parse_soapfuse_results
 
 
 class TestFusionToolParser(unittest.TestCase):
     def setUp(self):
         self.fusion_catcher1 = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/fusioncatcher_1.txt"
+            pyeasyfuse.tests.__name__, "resources/fusioncatcher_1.txt"
         )
         self.fusion_catcher2 = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/fusioncatcher_2.txt"
+            pyeasyfuse.tests.__name__, "resources/fusioncatcher_2.txt"
         )
         self.star_fusion = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/starfusion.txt"
+            pyeasyfuse.tests.__name__, "resources/starfusion.txt"
         )
         self.mapsplice = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/mapsplice.txt"
+            pyeasyfuse.tests.__name__, "resources/mapsplice.txt"
         )
         self.infusion = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/infusion.txt"
+            pyeasyfuse.tests.__name__, "resources/infusion.txt"
         )
         self.soapfuse = pkg_resources.resource_filename(
-            easy_fuse.tests.__name__, "resources/soapfuse.txt"
+            pyeasyfuse.tests.__name__, "resources/soapfuse.txt"
         )
 
     def test_parse_fusioncatcher_results(self):

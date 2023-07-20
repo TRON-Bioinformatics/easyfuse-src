@@ -1,6 +1,6 @@
 import unittest
 
-from easy_fuse.fusionannotation import FusionAnnotation
+from pyeasyfuse.fusionannotation import FusionAnnotation
 
 
 class TestFusionAnnotation(unittest.TestCase):
