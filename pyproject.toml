@@ -4,13 +4,13 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "pyeasyfuse"
-version = "2.0.2"
+version = "2.0.3"
 authors = [
     "Patrick Sorn <patrick.sorn@tron-mainz.edu>",
     "Jonas Ibn-Salem <jonas.ibn-salem@tron-mainz.edu>",
     "Christoph Holsträter <christoph.holstraeter@tron-mainz.edu>",
     "David Weber <david.weber@tron-mainz.edu>",
-    "Pablo Riesgo-Ferreiro <pablo.riesgo-ferreiro@tron-mainz.edu>",
+    "Pablo Riesgo-Ferreiro <pablo.riesgoferreiro@tron-mainz.edu>",
 ]
 description = "EasyFuse is a pipeline to detect fusion transcripts from RNA-seq data with high accuracy."
 readme = "README.md"
