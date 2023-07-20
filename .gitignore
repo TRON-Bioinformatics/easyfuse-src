@@ -6,3 +6,10 @@
 test_local/
 *.pyc
 */*.pyc
+.idea
+*.egg-info
+dist
+build
+venv
+integration_tests/**/observed.*
+integration_tests/**/observed
