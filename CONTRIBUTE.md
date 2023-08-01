@@ -45,6 +45,26 @@ This wheel file can be distributed and installed with `pip install easy_fuse-x.y
 
 After installation, EasyFuse should be available in the command line: `easy-fuse --help`
 
+## Non-Python dependencies
+
+There are some additional dependencies that are not managed in the Python package.
+
+These are:
+
+- r-base 4.2.*
+- r-optparse
+- r-dplyr
+- r-tidyr
+- r-tidyselect
+- r-readr
+- r-stringr
+- r-xml
+- r-randomforest
+- bioconda::star=2.6.1d
+- bioconda::samtools=1.9.0
+
+When the package is installed via conda the above dependencies are met with the exception of star and samtools.
+
 
 ## Publish
 
