@@ -1,6 +1,6 @@
 # easyfuse-src
 
-This reposirory contains the python source code for the [EasyFuse](https://github.com/TRON-Bioinformatics/EasyFuse) pipeline. 
+This reposirory contains the Python and R source code for the [EasyFuse](https://github.com/TRON-Bioinformatics/EasyFuse) pipeline. 
 
 Usage information and documentation is provided in the [EasyFuse repository](https://github.com/TRON-Bioinformatics/EasyFuse).
 

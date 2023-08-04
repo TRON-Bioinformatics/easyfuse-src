@@ -16,6 +16,7 @@ If you need to add a new dependency, add it to the `pyproject.toml` file and run
 
 After installation EasyFuse will be available in the command line as `poetry run easy-fuse --help`.
 
+
 ## Run unit tests
 
 Run:
@@ -23,9 +24,16 @@ Run:
 poetry run python -m unittest discover tests
 ```
 
+
 ## Run the integration tests
 
 See the [integration tests README](integration_tests/README.md).
+
+
+## Upgrading the version for a new release
+
+The version has to be changed in the property `version` of the file `pyproject.toml`.
+
 
 ## Build, distribute and install
 
@@ -36,6 +44,58 @@ This will create a wheel file under the `dist` folder such as `easy_fuse-x.y.z-p
 This wheel file can be distributed and installed with `pip install easy_fuse-x.y.z-py3-none-any.whl`
 
 After installation, EasyFuse should be available in the command line: `easy-fuse --help`
+
+## Non-Python dependencies
+
+There are some additional dependencies that are not managed in the Python package.
+
+These are:
+
+- r-base 4.2.*
+- r-optparse
+- r-dplyr
+- r-tidyr
+- r-tidyselect
+- r-readr
+- r-stringr
+- r-xml
+- r-randomforest
+- bioconda::star=2.6.1d
+- bioconda::samtools=1.9.0
+
+When the package is installed via conda the above dependencies are met with the exception of star and samtools.
+
+
+## Publish
+
+easyfuse-src is published in PyPI and bioconda under the name pyeasyfuse:
+- https://pypi.org/project/pyeasyfuse/
+- https://anaconda.org/bioconda/pyeasyfuse
+
+The publication to PyPI is not automated at the moment. Once published in PyPI it will be automatically published to 
+bioconda. The main difference between PyPI and conda is that while in the PyPI package we can only define the python 
+dependencies, in the conda package we can also define as a dependency any package available in a conda repository. 
+This is convenient in our case to manage the R dependencies as easyfuse-src also contains R code.
+
+To publish a new PyPI release you will need to install twine:
+```
+pip install twine
+```
+
+and then upload the previously built binaries as indicated above:
+```
+twine upload dist/pyeasyfuse-x.y.z*
+```
+
+**NOTE**: you will require your PyPI user credentials and being a maintainer of the pyeasyfuse package.
+
+The bioconda recipe for easyfuse is defined here https://github.com/bioconda/bioconda-recipes/blob/master/recipes/pyeasyfuse/meta.yaml
+
+A new PyPI release triggers an automated PR upgrading the bioconda recipe. 
+This upgrade PR requires the review from a bioconda member, but in most cases no intervention from our side is required.
+If any dependency needs to be added or changed a PR modifying the recipe would need to be done. 
+The guidelines are provided when creating a PR to bioconda-recipes.
+
 
 ## Cleaning the code
 
