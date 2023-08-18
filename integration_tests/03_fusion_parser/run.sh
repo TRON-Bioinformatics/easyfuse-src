@@ -11,7 +11,7 @@ input_soapfuse=$test_folder/input_soapfuse.final.Fusion.specific.for.genes
 input_starfusion=$test_folder/input_starfusion.star-fusion.fusion_predictions.tsv
 
 output_folder=$test_folder/observed
-mkdir $output_folder
+mkdir -p $output_folder
 
 output_file=${output_folder}/Detected_Fusions.csv
 output_file_fusioncatcher=${output_folder}/fusioncatcher.csv

@@ -10,7 +10,7 @@ input_requant_counts=$test_folder/input.requant_counts.counts
 input_reads_stats=$test_folder/input.reads_stats.txt
 input_model_pred=$test_folder/input.model.rds
 
-mkdir $test_folder/observed
+mkdir -p $test_folder/observed
 
 easy-fuse summarize-data \
   --input-fusions $input_fusions \

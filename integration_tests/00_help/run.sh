@@ -14,5 +14,6 @@ easy-fuse requantify --help
 easy-fuse requantify-filter --help
 easy-fuse skewer-wrapper --help
 easy-fuse soapfuse-wrapper --help
-easy-fuse count-reads --help
 easy-fuse star-index --help
+easy-fuse gtf-to-tsl --help
+easy-fuse gff3-to-db --help

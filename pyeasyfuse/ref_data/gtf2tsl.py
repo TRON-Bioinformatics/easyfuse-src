@@ -21,7 +21,10 @@ class Gtf2Tsl(object):
         self.tsl_out = tsl_out
 
     def get_data(self):
-        """stub"""
+        """
+        This method iterates over all entries from the input GTF file,
+        parses the essential information on TSL and writes it into the output file.
+        """
         feature_list = []
         tsl_dict = {}
         count_transcripts = 0
@@ -70,8 +73,7 @@ class Gtf2Tsl(object):
                         sys.exit(99)
                     if not transcript_id in tsl_dict:
                         tsl_dict[transcript_id] = [trans_biotype, gene_biotype, tsl]
-                    if count_transcripts == 20:
-                        break
+
 
         # write data to file
         with open(self.tsl_out, "w") as out_file:

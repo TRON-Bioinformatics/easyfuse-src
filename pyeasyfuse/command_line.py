@@ -108,7 +108,7 @@ def easy_fuse_cli():
 
     read_selection_parser = subparsers.add_parser(
         "requantify-filter",
-        description="Requantificaiton with more strict read filtering",
+        description="Requantification with more strict read filtering",
         epilog=epilog,
     )
     add_read_selection_args(read_selection_parser)
